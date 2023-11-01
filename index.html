@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+ <meta charset="UTF-8">
+ <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+ <link rel="shortcut icon" href="img/favicons/rick-y-morty.ico" type="image/x-icon">
+ <link rel="shortcut icon" href="img/favicons/rick-y-morty.png">
+
+ <title>Rick y Morty</title>
+ <style>
+  :root {
+   --primary: #0e393f;
+   --secondary: #407772;
+   --info: #0d7c85;
+   --success: #bdd066;
+   --font-family: Arial, Helvetica;
+   --font-size: 17px;
+  }
+
+  /*-------- GENERAL STYLE --------*/
+  *,
+  ::after,
+  ::before {
+   margin: 0;
+   padding: 0;
+   box-sizing: border-box;
+  }
+
+  html {
+   font-family: var(--font-family);
+   font-size: var(--font-size);
+   overflow-x: hidden;
+   scroll-behavior: smooth;
+  }
+
+  body {
+   background-color: var(--primary);
+   color: #fff;
+   display: flex;
+   flex-direction: column;
+   align-items: center;
+  }
+
+  img {
+   max-width: 100%;
+   height: auto;
+  }
+
+  .hidden {
+   visibility: hidden;
+   opacity: 0;
+  }
+
+  .logo {
+   margin: 2rem 0 1.5rem 0;
+   display: block;
+  }
+
+  .container {
+   width: 100%;
+   padding: 0 1.5rem;
+   line-height: 0;
+  }
+
+  .interfaz {
+   display: none;
+   position: relative;
+  }
+
+  .bg-search {
+   width: 100%;
+   position: sticky;
+   top: 0;
+   z-index: 100;
+   background-color: var(--primary);
+   padding: 1.2rem 0rem;
+  }
+
+  #searchContainer {
+   width: 100%;
+   display: flex;
+   align-items: center;
+   background-color: #f2f2f2;
+   border-radius: 25px;
+   box-shadow: 0px 3px 5px 0px rgba(0, 0, 0, 0.2);
+   padding: 10px;
+   color: #212529 !important;
+   border-color: var(--success) !important;
+   box-shadow: 0 0 0 0.25rem var(--success) !important;
+  }
+
+  #searchInput {
+   width: 100%;
+   border: none;
+   background: none;
+   outline: none;
+   flex: 1;
+   padding: 0 10px;
+   font-size: 1.2rem;
+   color: #212529 !important;
+  }
+
+  #searchIcon {
+   font-size: 20px;
+   margin-left: 10px;
+  }
+
+  /* Estilos para el modal de carga */
+  #loadingModal {
+   /* display: none; */
+   position: fixed;
+   top: 0;
+   left: 0;
+   width: 100%;
+   height: 100%;
+   z-index: 9999;
+   opacity: 0;
+   background-image: url('img/fondo.jpg');
+   background-size: cover;
+   background-position: center;
+  }
+
+  .loadingModalText {
+   width: 100%;
+   height: 100%;
+   display: flex;
+   flex-direction: column;
+   justify-content: center;
+   align-items: center;
+   display: flex;
+   justify-content: center;
+   align-items: center;
+   background: rgba(0, 0, 0, 0.7);
+   font-size: 1.6rem;
+  }
+
+  .loadingModalText img {
+   width: 6rem;
+  }
+
+  .results {
+   display: flex;
+   flex-wrap: wrap;
+   justify-content: center;
+   background-color: rgba(255, 255, 255, 0.5);
+   padding: 2rem;
+   margin-top: 2.5rem;
+   border-radius: 2rem;
+   margin-bottom: 3rem;
+  }
+
+  .character {
+   flex: 0 0 100%;
+   margin-bottom: 2rem;
+   background: linear-gradient(380deg, var(--success), var(--info));
+   border-radius: 1.2rem 1.2rem 0 0;
+   overflow: hidden;
+   text-align: center;
+   transition: all 0.5s ease;
+  }
+
+  .character:hover {
+   box-shadow: 0px 0px 25px 6px var(--success);
+   border: 1px solid #bdd066;
+  }
+
+  .character-image-container {
+   overflow: hidden;
+  }
+
+  .character img {
+   display: block;
+   width: 100%;
+   transition: all 0.5s ease;
+  }
+
+  .character img:hover {
+   transform: scale(1.25);
+   filter: saturate(2);
+  }
+
+  .character-info {
+   padding: 1.5rem;
+  }
+
+  .character-info h3 {
+   font-size: 1.6rem;
+   line-height: 1.2;
+   margin-bottom: 0.3rem;
+  }
+
+  .character-info p {
+   font-size: 1.1rem;
+   margin-bottom: 0.3rem;
+   line-height: 1.5;
+  }
+
+  p:last-child {
+   margin-bottom: 0;
+  }
+
+  .error-search {
+   color: red;
+   font-size: 1.2rem;
+  }
+
+  /*-------- SCROLL TOP BUTTON --------*/
+  .scroll-top-btn {
+   position: fixed;
+   z-index: 999;
+   bottom: 5%;
+   right: 1%;
+   width: 3rem;
+   height: 3rem;
+   border-radius: 50%;
+   background-color: var(--info);
+   transition: all 0.2s ease-out;
+   display: flex;
+   justify-content: center;
+   align-items: center;
+  }
+
+  .scroll-top-btn:hover {
+   background-color: var(--secondary);
+  }
+
+  .hidden {
+   visibility: hidden;
+   opacity: 0;
+  }
+
+  .arrow {
+   border: solid var(--success);
+   border-width: 0 4px 4px 0;
+   display: inline-block;
+   padding: 5px;
+   margin-top: 0.25rem;
+  }
+
+  .up {
+   transform: rotate(-135deg);
+   -webkit-transform: rotate(-135deg);
+  }
+
+  /*-------- LAZY LAOD IMAGES --------*/
+  .lazy-load-img {
+   opacity: 0;
+   transition: opacity ease-out 0.5s;
+  }
+
+  .fade-lazy-load-img {
+   opacity: 1.0 !important;
+  }
+
+
+
+  /*-------- MEDIA QUERIES --------*/
+  /* // Small devices (landscape phones, 576px and up) */
+  @media (min-width: 576px) {
+   .container {
+    max-width: 540px;
+
+   }
+
+
+  }
+
+  /* // Medium devices (tablets, 768px and up) */
+  @media (min-width: 768px) {
+   .container {
+    max-width: 720px;
+    padding: 0 1rem;
+   }
+
+   .results {
+    justify-content: space-between;
+   }
+
+   .character {
+    flex: 0 0 46.6%;
+   }
+  }
+
+  /* // Large devices (desktops, 992px and up) */
+  @media (min-width: 992px) {
+   .container {
+    max-width: 960px;
+   }
+
+
+
+   .character {
+    flex: 0 0 23%;
+    gap: 0px;
+   }
+  }
+
+  /* // X-Large devices (large desktops, 1200px and up) */
+  @media (min-width: 1200px) {
+   .container {
+    max-width: 1140px;
+   }
+
+
+  }
+
+  /* // XX-Large devices (larger desktops, 1400px and up) */
+  @media (min-width: 1400px) {
+   .container {
+    max-width: 1320px;
+   }
+  }
+ </style>
+
+
+</head>
+
+<body>
+ <header class="header">
+  <div class="container">
+   <img class="logo" src="img/logo.png" alt="Rick y Morty">
+  </div>
+ </header>
+
+ <div class="container">
+  <div id="interfaz" class="interfaz">
+   <div class="bg-search">
+    <div id="searchContainer">
+     <input id="searchInput" type="text" placeholder="Ingresa el nombre y presiona Enter">
+     <span id="searchIcon">🔍</span>
+    </div>
+
+
+   </div>
+
+   <div id="results" class="results">
+   </div>
+  </div>
+
+ </div>
+
+
+
+ <!-- Modal de carga -->
+ <div id="loadingModal">
+  <div id="loadingModalText" class="loadingModalText">
+   <div><img src="img/oval.svg" alt="Cargando..."></div>
+   <div>Cargando...</div>
+  </div>
+ </div>
+
+ <!-- Scroll Top Button -->
+ <a href="#" class="scroll-top-btn hidden"><i class="arrow up"></i></a>
+
+ <script>
+  let allCharacters = [];
+  let charactersToObserve = [];
+  let isLoading = false;
+  let isLastPage = false;
+  let searchActive = false;
+  let currentPage = 1;
+  const resultsDiv = document.getElementById( 'results' );
+  const searchInput = document.getElementById( 'searchInput' );
+  const loadingModal = document.getElementById( 'loadingModal' );
+  const loadingModalText = document.getElementById( 'loadingModalText' );
+  const $interfaz = document.querySelector( '#interfaz' );
+
+  //Conexión a la API
+  async function fetchCharacters() {
+   isLoading = true;
+   loadingModal.style.opacity = 1; // Mostrar el modal de carga
+   // loadingModalText.textContent = 'Conectando a la API...';
+
+   while ( !isLastPage ) {
+    const response = await fetch( `https://rickandmortyapi.com/api/character/?page=${currentPage}` );
+    if ( !response.ok ) {
+     throw new Error( 'Network response was not ok.' );
+    }
+    const data = await response.json();
+    allCharacters = allCharacters.concat( data.results );
+    isLoading = false;
+    if ( currentPage === data.info.pages ) {
+     isLastPage = true;
+    }
+    currentPage++;
+   }
+   console.log( 'Total characters:', allCharacters.length );
+   charactersToObserve = allCharacters.slice();
+   loadingModal.style.display = 'none'; // Ocultar el modal de carga
+   $interfaz.style.display = 'block'
+   createCharacterDiv( 0 ); // Carga el primer personaje
+
+   return allCharacters;
+  }
+
+  //Creación de los personajes
+  function createCharacterDiv( index ) {
+   if ( index < charactersToObserve.length ) {
+    const character = charactersToObserve[index];
+    const characterDiv = document.createElement( 'div' );
+    characterDiv.classList.add( 'character' );
+
+    const characterImageContainer = document.createElement( "div" );
+    characterImageContainer.classList.add( "character-image-container" );
+
+    const characterImage = document.createElement( "img" );
+    characterImage.classList.add( "lazy-load-img" );
+    characterImage.dataset.src = character.image;
+
+    characterImageContainer.appendChild( characterImage );
+
+    const characterInfoDiv = document.createElement( "div" );
+    characterInfoDiv.classList.add( "character-info" );
+
+    const characterId = document.createElement( "h2" );
+    characterId.textContent = `ID: ${character.id}`;
+
+    const characterName = document.createElement( "h3" );
+    characterName.textContent = `${character.name}`;
+
+    const characterSpecies = document.createElement( "p" );
+    characterSpecies.textContent = `${character.species}`;
+
+    const characterOrigin = document.createElement( "p" );
+    characterOrigin.textContent = `${character.origin.name}`;
+
+    // characterInfoDiv.appendChild( characterId );
+    characterInfoDiv.appendChild( characterName );
+    characterInfoDiv.appendChild( characterSpecies );
+    characterInfoDiv.appendChild( characterOrigin );
+
+    characterDiv.appendChild( characterImageContainer );
+    characterDiv.appendChild( characterInfoDiv );
+
+    resultsDiv.appendChild( characterDiv );
+
+    observer.observe( characterDiv );
+    LazyLoadImgObserver.observe( characterImage );
+   }
+  }
+
+
+
+  searchInput.addEventListener( 'keyup', function ( event ) {
+   const searchTerm = searchInput.value.toLowerCase();
+   console.log( searchTerm );
+   if ( event.key === 'Enter' ) {
+    console.log( 'Enter' );
+    charactersToObserve = allCharacters.filter( character =>
+     character.name.toLowerCase().includes( searchTerm )
+    );
+    if ( charactersToObserve.length == 0 ) {
+     console.log( 'charactersToObserve.length == 0', charactersToObserve.length );
+     resultsDiv.innerHTML = '';
+     const errorSearch = document.createElement( "div" );
+     errorSearch.classList.add( "error-search" );
+     errorSearch.innerHTML = `El personaje <b>${searchTerm}</b> no existe en la serie`;
+     resultsDiv.appendChild( errorSearch );
+     return;
+    }
+    console.log( 'Total characters:', charactersToObserve.length );
+    resultsDiv.innerHTML = ''; // Limpia los resultados anteriores
+    createCharacterDiv( 0 );
+
+   }
+  } );
+
+
+
+
+  /*   //Botón para la busqueda por nombre
+    searchInput.addEventListener( 'input', function () {
+     const searchTerm = searchInput.value.toLowerCase();
+     charactersToObserve = allCharacters.filter( character =>
+      character.name.toLowerCase().includes( searchTerm )
+     );
+     console.log( 'Total characters:', charactersToObserve.length );
+     resultsDiv.innerHTML = ''; // Limpia los resultados anteriores
+     createCharacterDiv( 0 ); // Carga los personajes filtrados desde el principio
+    } ); */
+
+  //Observer para los personajes
+  const callback = ( entries, observer ) => {
+   entries.forEach( entry => {
+    if ( entry.isIntersecting ) {
+     const characterDiv = entry.target;
+     const index = Array.from( characterDiv.parentNode.children ).indexOf( characterDiv );
+     createCharacterDiv( index + 1 ); // Carga el siguiente personaje
+     observer.unobserve( entry.target );
+    }
+   } );
+  };
+
+  const options = {
+   root: null,
+   rootMargin: '0px',
+   threshold: 0.1,
+  };
+
+  const observer = new IntersectionObserver( callback, options );
+
+
+  //Observer para las imágenes
+  const callbackLazyLoadImg = ( entries, LazyLoadImgObserver ) => {
+   entries.forEach( ( entry ) => {
+    if ( entry.isIntersecting ) {
+     entry.target.src = entry.target.dataset.src;
+     entry.target.classList.add( 'fade-lazy-load-img' );
+     LazyLoadImgObserver.unobserve( entry.target );
+    }
+   } );
+  };
+
+  const optionsLazyLoadImg = {
+   rootMargin: '0px',
+   threshold: 0.1,
+  };
+
+  const LazyLoadImgObserver = new IntersectionObserver( callbackLazyLoadImg, optionsLazyLoadImg );
+
+
+
+  fetchCharacters();
+
+ </script>
+
+ <!-- Scroll Top Button -->
+ <script>
+  const $toTop = document.querySelector( '.scroll-top-btn' );
+  window.addEventListener( 'scroll', () => {
+   if ( window.pageYOffset > 100 ) {
+    $toTop.classList.remove( 'hidden' );
+   } else {
+    $toTop.classList.add( 'hidden' );
+   };
+  } );
+ </script>
+
+</body>
+
+</html>
